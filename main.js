@@ -112,9 +112,9 @@
     };
 
     try {
-      const result = await fetchJson('/api/proxy', {
+      const result = await fetchJson(SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
 
@@ -255,9 +255,9 @@
 
       formDataObj['Timestamp'] = new Date().toLocaleString();
 
-      const response = await fetch('/api/proxy', {
+      const response = await fetch(SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(formDataObj)
       });
 
