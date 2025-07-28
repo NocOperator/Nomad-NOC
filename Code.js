@@ -1,10 +1,9 @@
-
 const DATA_ENTRY_SHEET_NAME = "Sheet1";
 const TIME_STAMP_COLUMN_NAME = "Timestamp";
 const FOLDER_ID = "NOC";
 // secondary file upload
 const NUMERIC_LOG_SHEET_NAME = 'DataEntry'; // Sheet name in the message metrics spreadsheet
-const DAILY_CHECKS_SPREADSHEET_ID = "1JwpraepmuSFGlhmcv8LwT_L7xVwCDcqi4MU4Rje7NvQ"; // ID of the target spreadsheet for daily checks
+const DAILY_CHECKS_SPREADSHEET_ID = "19_-sakqFq26MDjKj04aMjSc36NBbF9SRsgMDnPCTB_c"; // ID of the target spreadsheet for daily checks
 // == CONFIGURATION END ==
 
 /**
@@ -127,19 +126,27 @@ function copyPreviousDaySheet() {
   const spreadsheet = getOrCreateMonthlySpreadsheet();
 
   const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-
   const tz = "America/New_York";
   const todayName = Utilities.formatDate(today, tz, "M/d/yy");
-  const yesterdayName = Utilities.formatDate(yesterday, tz, "M/d/yy");
+
+  // If Monday, previous day is Friday (3 days ago), else previous day is yesterday (1 day ago)
+  let daysToSubtract = 1;
+  const dayOfWeek = today.getDay(); // Sunday=0, Monday=1, ..., Saturday=6
+
+  if (dayOfWeek === 1) { // Monday
+    daysToSubtract = 3;  // Go back to Friday
+  }
+
+  const previousDate = new Date(today);
+  previousDate.setDate(today.getDate() - daysToSubtract);
+  const previousName = Utilities.formatDate(previousDate, tz, "M/d/yy");
 
   if (spreadsheet.getSheetByName(todayName)) {
     throw new Error(`Sheet (${todayName}) already exists`);
   }
 
-  const previousSheet = spreadsheet.getSheetByName(yesterdayName);
-  if (!previousSheet) throw new Error(`Sheet "${yesterdayName}" not found in "${spreadsheet.getName()}"`);
+  const previousSheet = spreadsheet.getSheetByName(previousName);
+  if (!previousSheet) throw new Error(`Sheet "${previousName}" not found in "${spreadsheet.getName()}"`);
 
   const newSheet = previousSheet.copyTo(spreadsheet).activate();
   newSheet.setName(todayName);
@@ -148,7 +155,7 @@ function copyPreviousDaySheet() {
   newSheet.getRange("C3").setValue(""); // Operator
   newSheet.getRange("C4").setValue(todayName); // Date
 
-  // Reset checkboxes to FALSE and set description font color blue except for "WAVE" checks
+  // Reset checkboxes and descriptions as before (your existing code)
   const range = newSheet.getDataRange();
   const values = range.getValues();
   const numRows = values.length;
@@ -173,6 +180,7 @@ function copyPreviousDaySheet() {
     }
   }
 }
+
 
 function getTimeBlock() {
   const tz = "America/New_York";
