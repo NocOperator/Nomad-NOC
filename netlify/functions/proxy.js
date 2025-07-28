@@ -1,18 +1,25 @@
 export async function handler(event) {
-  const response = await fetch('https://script.google.com/macros/s/AKfycbwEg3zDQTvzrkZPgnaIMRBT9InrP-Hz_yT7dOCK9KsXcOBPjnqqMjqtAjRG3f_zd3ae/exec', {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: event.body
-  });
+  const scriptUrl = "https://script.google.com/macros/s/AKfycbwEg3zDQTvzrkZPgnaIMRBT9InrP-Hz_yT7dOCK9KsXcOBPjnqqMjqtAjRG3f_zd3ae/exec";
 
-  const text = await response.text(); // don't parse JSON until you know it's valid
+  try {
+    const response = await fetch(scriptUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: event.body
+    });
 
-  return {
-    statusCode: 200,
-    headers: {
-      'Content-Type': 'text/plain',
-      'Access-Control-Allow-Origin': '*'
-    },
-    body: text
-  };
+    const data = await response.json();
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(data)
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ status: 'error', message: error.message })
+    };
+  }
 }

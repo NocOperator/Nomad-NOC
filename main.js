@@ -114,7 +114,7 @@
     try {
       const result = await fetchJson('/api/proxy', {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
@@ -257,7 +257,7 @@
 
       const response = await fetch('/api/proxy', {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formDataObj)
       });
 
