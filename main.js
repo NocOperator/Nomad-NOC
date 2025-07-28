@@ -1,5 +1,5 @@
 (() => {
-  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQohLpgMCkMfv1T6kUto-ole2NRCZCzfywnVNl98gxNFSY2BbFN4bVCpZu3QsL3DKLhwNqcqw8C8inf/pub?output=csv";
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZaUBRyTPIauLIygem_F1JEZBybe2fzTnGUyZl8SFWqxhY3gTd2YXczvYT0tL1Z_UICJjYYiYnamla/pub?output=csv";
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHbgzBzpViRvYu_o0FGkpM2dSuIi8TBE05jfZsDIxjVSUBIfKFZW7jXK6w3fighRxi/exec";
 
   // ------- Utilities --------
