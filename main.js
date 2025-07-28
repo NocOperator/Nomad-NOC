@@ -112,7 +112,7 @@
     };
 
     try {
-      const result = await fetchJson(SCRIPT_URL, {
+      const result = await fetchJson('/api/proxy', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
