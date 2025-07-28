@@ -255,7 +255,7 @@
 
       formDataObj['Timestamp'] = new Date().toLocaleString();
 
-      const response = await fetch(SCRIPT_URL, {
+      const response = await fetch('/api/proxy', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(formDataObj)
