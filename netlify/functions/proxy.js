@@ -1,5 +1,5 @@
 export async function handler(event) {
-  const response = await fetch('https://script.google.com/macros/s/AKfycb.../exec', {
+  const response = await fetch('https://script.google.com/macros/s/AKfycbwEg3zDQTvzrkZPgnaIMRBT9InrP-Hz_yT7dOCK9KsXcOBPjnqqMjqtAjRG3f_zd3ae/exec', {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: event.body
