@@ -1,22 +1,18 @@
 export async function handler(event) {
-  const url = 'https://script.google.com/macros/s/AKfycbwEg3zDQTvzrkZPgnaIMRBT9InrP-Hz_yT7dOCK9KsXcOBPjnqqMjqtAjRG3f_zd3ae/exec';
-
-  const response = await fetch(url, {
-    method: event.httpMethod,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: event.body,
+  const response = await fetch('https://script.google.com/macros/s/AKfycb.../exec', {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: event.body
   });
 
-  const text = await response.text();
+  const text = await response.text(); // don't parse JSON until you know it's valid
 
   return {
-    statusCode: response.status,
+    statusCode: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
+      'Access-Control-Allow-Origin': '*'
     },
-    body: text,
+    body: text
   };
 }
