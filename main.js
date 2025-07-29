@@ -318,6 +318,10 @@
     document.getElementById("userNameDisplay").addEventListener("click", promptUserNameChange);
   });
 
+  document.getElementById('nocChecklistBtn').addEventListener('click', () => {
+    window.open("https://drive.google.com/drive/folders/1py4uqGk1br4y-7iS6wZVCANWGh94bxuz", "_blank");
+  });
+
   // Expose to global (if needed)
   window.openModal = openModal;
   window.closeModal = closeModal;
