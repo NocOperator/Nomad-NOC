@@ -170,15 +170,18 @@ function copyPreviousDaySheet() {
       const checkboxCell = newSheet.getRange(row + 1, checkboxCol);
       checkboxCell.setValue(false);
 
-      if (typeof titleText === 'string' && titleText.includes("WAVE")) continue;
-
-      const descriptionRow = row + 2;
-      if (descriptionRow <= numRows) {
-        const descriptionCell = newSheet.getRange(descriptionRow, titleCol);
-        descriptionCell.setFontColor("#00a6ffff"); // Set font color to blue
+      if (typeof titleText === 'string' && titleText.includes("WAVE")) {
+        // For Check 10: comment is in column E (5), same row
+        const descriptionCell = newSheet.getRange(row + 1, 5);
+        descriptionCell.setFontColor("#00a6ffff"); // Set blue
+      } else {
+        // For other checks: comment is in column C (3), same row
+        const descriptionCell = newSheet.getRange(row + 1, titleCol);
+        descriptionCell.setFontColor("#00a6ffff"); // Set blue
       }
     }
   }
+
 }
 
 function getTimeBlock() {
@@ -321,12 +324,12 @@ function writeToNocChecklist(data) {
           // Append red note after if status is not "TRUE"
           if (newValue !== "TRUE") {
 
-const descCell = sheet.getRange(targetRow, statusCol + 1); // Cell after status
+            const descCell = sheet.getRange(targetRow, statusCol + 1); // Cell after status
             const oldRichText = descCell.getRichTextValue();
             const oldNote = oldRichText ? oldRichText.getText() : "";
             const datePrefix = Utilities.formatDate(new Date(), tz, "M/d/yy");
 
-const newBullet = `- ${datePrefix} status changed from ${oldValue} to ${newValue}`;
+            const newBullet = `- ${datePrefix} status changed from ${oldValue} to ${newValue}`;
 
             // Split existing lines and append new one
             const bullets = oldNote ? oldNote.split('\n') : [];
@@ -339,16 +342,16 @@ const newBullet = `- ${datePrefix} status changed from ${oldValue} to ${newValue
             const redStyle = SpreadsheetApp.newTextStyle().setForegroundColor("red").build();
             const blueStyle = SpreadsheetApp.newTextStyle().setForegroundColor("blue").build();
 
-// Build all text as blue
+            // Build all text as blue
             const builder = SpreadsheetApp.newRichTextValue()
               .setText(newNote)
               .setTextStyle(blueStyle);
 
-// Apply red to the last bullet only
+            // Apply red to the last bullet only
             const redStart = newNote.lastIndexOf(newBullet);
             const redEnd = redStart + newBullet.length;
             builder.setTextStyle(redStart, redEnd, redStyle);
-// Set the rich text value in the cell
+            // Set the rich text value in the cell
             descCell.setRichTextValue(builder.build());
           }
         }
