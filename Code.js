@@ -48,7 +48,7 @@ function doPost(e) {
       throw new Error("Missing checkNumber in payload");
     };
     // ------------- Write to Spreadsheet #1  --------------
-    const ss1 = SpreadsheetApp.openById("1ouffCRwlzmgRiyH4i3OUXqfKN66bnlulaRLoBfexmbM");
+    const ss1 = SpreadsheetApp.openById("1DzE2HUX-0eKl2pI8mgfnTcYnRlH_WhpS3Df15ECmM1c");
     const sheet1 = ss1.getSheetByName("Sheet1"); // Adjust if you use a different sheet name
 
     // Find row for this checkNumber (assuming column A has check numbers)
