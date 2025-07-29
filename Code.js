@@ -181,12 +181,11 @@ function copyPreviousDaySheet() {
       const descriptionRow = row + 2;
       if (descriptionRow <= numRows) {
         const descriptionCell = newSheet.getRange(descriptionRow, titleCol);
-        descriptionCell.setFontColor("#00a6ffff"); // Set font color to blue
+        descriptionCell.setFontColor("#00a6ff"); // Set font color to blue
       }
     }
   }
 }
-
 
 function getTimeBlock() {
   const tz = "America/New_York";

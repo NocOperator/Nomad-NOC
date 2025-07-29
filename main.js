@@ -2,7 +2,7 @@
   const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQq3q2fgE0ZJTQkch60qkJ4i0Ak76Q8rN16rYnUQnGkPEQWbRfRxz4gxwKKfmO65xiNLxGRrKktfRcf/pub?output=csv";
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzNW0ObQDIrZrIQWPc36YmDMsnTsdY0gYKNtgCwqRnN2TBpZfZkFommVk8jVCrJ3MGM/exec";
 
-  // --- Utilities ---
+  // ------- Utilities --------
   function formatDate(date = new Date()) {
     return date.toLocaleDateString(undefined, {
       weekday: 'short',
@@ -12,21 +12,11 @@
     });
   }
 
-  // Cache CSV in sessionStorage to avoid repeated fetching
-  async function fetchCsvCached() {
-    const cached = sessionStorage.getItem("noc_csv");
-    if (cached) return cached;
-    const res = await fetch(CSV_URL);
-    const text = await res.text();
-    sessionStorage.setItem("noc_csv", text);
-    return text;
-  }
-
   function fetchJson(url, options) {
     return fetch(url, options).then(res => res.json());
   }
 
-  // --- User name handling ---
+  // -------- USER NAME HANDLING ---------
   function loadUserName() {
     const savedDate = localStorage.getItem("nocUserDate");
     const todayStr = new Date().toLocaleDateString();
@@ -56,11 +46,10 @@
     }
   }
 
-  // --- Tile status updates ---
+  // ------ Tile Status Updates ------
   function clearTileStatusClasses(tile) {
     tile.classList.remove('true', 'false', 'bad', 'warning', 'on-hold');
   }
-
   function updateSingleTileStatus(tileId, csvRows) {
     const tile = document.getElementById(tileId);
     if (!tile) return;
@@ -76,6 +65,7 @@
       if (statusDiv) statusDiv.textContent = "Status: On Hold";
       return;
     }
+    // Use provided CSV rows to avoid fetching
     const row = csvRows.find(r => r.split(",")[0] === tileId.padStart(2, "0"));
     if (row) {
       const [checkNum, statusRaw, notes, timestamp] = row.split(",");
@@ -91,26 +81,26 @@
     }
   }
 
-  async function updateTileStatuses() {
-    try {
-      const csv = await fetchCsvCached();
-      const rows = csv.trim().split('\n').slice(1);
-      rows.forEach(row => {
-        const [checkNum] = row.split(",");
-        const tileId = checkNum.padStart(2, "0");
-        updateSingleTileStatus(tileId, rows);
-      });
-    } catch (err) {
-      console.error("Failed to update tile statuses:", err);
-    }
+  function updateTileStatuses() {
+    fetch(CSV_URL)
+      .then(res => res.text())
+      .then(csv => {
+        const rows = csv.trim().split('\n').slice(1); // Skip header
+        rows.forEach(row => {
+          const [checkNum, statusRaw, notes, timestamp] = row.split(",");
+          const tileId = checkNum.padStart(2, "0");
+          updateSingleTileStatus(tileId, rows); // Pass rows to avoid refetching
+        });
+      })
+      .catch(console.error);
   }
 
-  // --- Display current date ---
+  // ------- Display Current Date -----
   function displayCurrentDate() {
     document.getElementById('currentDate').textContent = formatDate();
   }
 
-  // --- Submit operator and date ---
+  // ------- Submit Operator + Date -------
   async function submitOperatorAndDate() {
     const name = localStorage.getItem("nocUserName") || "Unknown";
     const date = new Date().toLocaleDateString();
@@ -136,7 +126,7 @@
     }
   }
 
-  // --- Modal handlers ---
+  // --------- Modal Handlers ---------
   function openModal(checkNum, title) {
     const modal = document.getElementById('formModal');
     const modalTitle = document.getElementById('modalTitle');
@@ -157,23 +147,30 @@
     const form = document.getElementById('modalForm');
     form.reset();
 
+    // Setup On Hold toggle *after* form reset to preserve state
     const onHoldToggle = document.getElementById("onHoldToggle");
     const onHoldLabel = document.getElementById("onHoldLabel");
     const holdKey = `onHold_${checkNum}`;
     const isOnHold = localStorage.getItem(holdKey) === "true";
 
+    // Explicitly set checked state and attributes
     if (onHoldToggle) {
       onHoldToggle.checked = isOnHold;
       onHoldToggle.setAttribute('checked', isOnHold ? 'checked' : '');
       onHoldLabel.style.color = isOnHold ? "black" : "lightgray";
+      console.log(`Opening modal for Check ${checkNum}: onHold=${isOnHold}, checked=${onHoldToggle.checked}`);
+    } else {
+      console.error(`onHoldToggle not found for Check ${checkNum}`);
     }
 
+    // Sync toggle state with tile and storage
     if (onHoldToggle) {
       onHoldToggle.onchange = () => {
         const newHoldState = onHoldToggle.checked;
         localStorage.setItem(holdKey, newHoldState);
         onHoldLabel.style.color = newHoldState ? "black" : "lightgray";
-        updateSingleTileStatus(checkNum.padStart(2, "0"), []);
+        updateSingleTileStatus(checkNum.padStart(2, "0"), []); // Pass empty rows for on-hold update
+        console.log(`Toggle changed for Check ${checkNum}: onHold=${newHoldState}`);
       };
     }
 
@@ -183,10 +180,10 @@
   function closeModal() {
     document.getElementById('formModal').style.display = 'none';
     document.getElementById('modalBackdrop').style.display = 'none';
-    updateTileStatuses();
+    updateTileStatuses(); // Refresh all tiles after closing modal
   }
 
-  // --- Form submission ---
+  // ------ Form Submission ---------
   async function handleFormSubmit(e) {
     e.preventDefault();
     const messageDiv = document.getElementById('message');
@@ -202,8 +199,7 @@
       const formDataObj = Object.fromEntries(formData.entries());
       formDataObj['checkNumberStr'] = formDataObj['checkNumber'];
 
-      // Your WAVE check and operator logic here (same as original)...
-const serverKeys = [
+      const serverKeys = [
         "Fly-216N",
         "Fly-220",
         "Fly-222",
@@ -233,6 +229,8 @@ const serverKeys = [
         }
         formDataObj['Completed'] = 'TRUE';
       }
+
+      // Inject operator info
       formDataObj["Operator"] = localStorage.getItem("nocUserName") || "Unknown";
       formDataObj["Operator Date"] = localStorage.getItem("nocUserDate") || new Date().toLocaleDateString();
 
@@ -240,7 +238,7 @@ const serverKeys = [
         formDataObj['Completed'] = 'FALSE';
       }
 
-      // Mark message checks completed if all four numeric fields entered
+      // Message checks are marked completed if all 4 numbers are entered
       if (
         formData.has('Total Device Count') &&
         formData.has('Raw Messages') &&
@@ -248,12 +246,7 @@ const serverKeys = [
         formData.has('Free Disk Space')
       ) {
         formDataObj['Completed'] = 'TRUE';
-        formDataObj['Notes'] = [
-          formDataObj['Total Device Count'],
-          formDataObj['Raw Messages'],
-          formDataObj['Unique IMEIs'],
-          formDataObj['Free Disk Space']
-        ].join(", ");
+        formDataObj['Notes'] = formDataObj['Total Device Count'] + ", " + formDataObj['Raw Messages'] + ", " + formDataObj['Unique IMEIs'] + ", " + formDataObj['Free Disk Space'];
       }
 
       if (formDataObj['checkNumber'] === '10') {
@@ -293,12 +286,23 @@ const serverKeys = [
     }
   }
 
-  // --- NOC checklist button ---
-  document.getElementById('nocChecklistBtn').addEventListener('click', () => {
-    window.open("https://drive.google.com/drive/folders/1py4uqGk1br4y-7iS6wZVCANWGh94bxuz", "_blank");
-  });
+  function toggleMessageSheetBox() {
+    const box = document.getElementById("messageSheetBox");
+    const button = document.getElementById("messageSheetBtn");
 
-  // --- Initialization ---
+    const isVisible = box.style.display === "block";
+    box.style.display = isVisible ? "none" : "block";
+
+    // Optional: update button label or color
+    button.textContent = isVisible
+      ? "Message Metrics Spreadsheet"
+      : "Hide Spreadsheet Upload";
+
+    button.classList.toggle("is-warning", isVisible);
+    button.classList.toggle("is-danger", !isVisible);
+  }
+
+  // -------- Initialization --------
   document.addEventListener("DOMContentLoaded", () => {
     fetch('modal.html')
       .then(res => res.text())
@@ -311,9 +315,11 @@ const serverKeys = [
     displayCurrentDate();
     updateTileStatuses();
 
-    document.getElementById("userName").addEventListener("click", promptUserNameChange);
+    document.getElementById("userNameDisplay").addEventListener("click", promptUserNameChange);
   });
 
+  // Expose to global (if needed)
   window.openModal = openModal;
   window.closeModal = closeModal;
+  window.toggleMessageSheetBox = toggleMessageSheetBox;
 })();
