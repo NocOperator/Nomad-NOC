@@ -3,7 +3,7 @@ const TIME_STAMP_COLUMN_NAME = "Timestamp";
 const FOLDER_ID = "NOC";
 // secondary file upload
 const NUMERIC_LOG_SHEET_NAME = 'DataEntry'; // Sheet name in the message metrics spreadsheet
-const DAILY_CHECKS_SPREADSHEET_ID = "1JwpraepmuSFGlhmcv8LwT_L7xVwCDcqi4MU4Rje7NvQ"; // ID of the target spreadsheet for daily checks
+const DAILY_CHECKS_SPREADSHEET_ID = "19_-sakqFq26MDjKj04aMjSc36NBbF9SRsgMDnPCTB_c"; // ID of the target spreadsheet for daily checks
 // == CONFIGURATION END ==
 
 /**
