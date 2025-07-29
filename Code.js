@@ -3,7 +3,7 @@ const TIME_STAMP_COLUMN_NAME = "Timestamp";
 const FOLDER_ID = "NOC";
 // secondary file upload
 const NUMERIC_LOG_SHEET_NAME = 'DataEntry'; // Sheet name in the message metrics spreadsheet
-const DAILY_CHECKS_SPREADSHEET_ID = "19_-sakqFq26MDjKj04aMjSc36NBbF9SRsgMDnPCTB_c"; // ID of the target spreadsheet for daily checks
+const DAILY_CHECKS_SPREADSHEET_ID = "1JwpraepmuSFGlhmcv8LwT_L7xVwCDcqi4MU4Rje7NvQ"; // ID of the target spreadsheet for daily checks
 // == CONFIGURATION END ==
 
 /**
@@ -40,7 +40,7 @@ function doPost(e) {
       throw new Error("Missing checkNumber in payload");
     };
     // ------------- Write to Spreadsheet #1  --------------
-    const ss1 = SpreadsheetApp.openById("1SQc0ZZU5j7dwcqYVr56hylA3mKp326Yggz8E3FJXlMc");
+    const ss1 = SpreadsheetApp.openById("1ouffCRwlzmgRiyH4i3OUXqfKN66bnlulaRLoBfexmbM");
     const sheet1 = ss1.getSheetByName("Sheet1"); // Adjust if you use a different sheet name
 
     // Find row for this checkNumber (assuming column A has check numbers)
@@ -126,27 +126,19 @@ function copyPreviousDaySheet() {
   const spreadsheet = getOrCreateMonthlySpreadsheet();
 
   const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
   const tz = "America/New_York";
   const todayName = Utilities.formatDate(today, tz, "M/d/yy");
-
-  // If Monday, previous day is Friday (3 days ago), else previous day is yesterday (1 day ago)
-  let daysToSubtract = 1;
-  const dayOfWeek = today.getDay(); // Sunday=0, Monday=1, ..., Saturday=6
-
-  if (dayOfWeek === 1) { // Monday
-    daysToSubtract = 3;  // Go back to Friday
-  }
-
-  const previousDate = new Date(today);
-  previousDate.setDate(today.getDate() - daysToSubtract);
-  const previousName = Utilities.formatDate(previousDate, tz, "M/d/yy");
+  const yesterdayName = Utilities.formatDate(yesterday, tz, "M/d/yy");
 
   if (spreadsheet.getSheetByName(todayName)) {
     throw new Error(`Sheet (${todayName}) already exists`);
   }
 
-  const previousSheet = spreadsheet.getSheetByName(previousName);
-  if (!previousSheet) throw new Error(`Sheet "${previousName}" not found in "${spreadsheet.getName()}"`);
+  const previousSheet = spreadsheet.getSheetByName(yesterdayName);
+  if (!previousSheet) throw new Error(`Sheet "${yesterdayName}" not found in "${spreadsheet.getName()}"`);
 
   const newSheet = previousSheet.copyTo(spreadsheet).activate();
   newSheet.setName(todayName);
@@ -155,7 +147,7 @@ function copyPreviousDaySheet() {
   newSheet.getRange("C3").setValue(""); // Operator
   newSheet.getRange("C4").setValue(todayName); // Date
 
-  // Reset checkboxes and descriptions as before (your existing code)
+  // Reset checkboxes to FALSE and set description font color blue except for "WAVE" checks
   const range = newSheet.getDataRange();
   const values = range.getValues();
   const numRows = values.length;
@@ -180,7 +172,6 @@ function copyPreviousDaySheet() {
     }
   }
 }
-
 
 function getTimeBlock() {
   const tz = "America/New_York";
@@ -322,12 +313,12 @@ function writeToNocChecklist(data) {
           // Append red note after if status is not "TRUE"
           if (newValue !== "TRUE") {
 
-const descCell = sheet.getRange(targetRow, statusCol + 1); // Cell after status
+            const descCell = sheet.getRange(targetRow, statusCol + 1); // Cell after status
             const oldRichText = descCell.getRichTextValue();
             const oldNote = oldRichText ? oldRichText.getText() : "";
             const datePrefix = Utilities.formatDate(new Date(), tz, "M/d/yy");
 
-const newBullet = `- ${datePrefix} status changed from ${oldValue} to ${newValue}`;
+            const newBullet = `- ${datePrefix} status changed from ${oldValue} to ${newValue}`;
 
             // Split existing lines and append new one
             const bullets = oldNote ? oldNote.split('\n') : [];
@@ -340,17 +331,19 @@ const newBullet = `- ${datePrefix} status changed from ${oldValue} to ${newValue
             const redStyle = SpreadsheetApp.newTextStyle().setForegroundColor("red").build();
             const blueStyle = SpreadsheetApp.newTextStyle().setForegroundColor("blue").build();
 
-// Build all text as blue
-            const builder = SpreadsheetApp.newRichTextValue()
-              .setText(newNote)
-              .setTextStyle(blueStyle);
+            // Build all text as blue
+            const builder = SpreadsheetApp.newRichTextValue().setText(newNote);
 
-// Apply red to the last bullet only
+            // Apply blue style to all text
+            builder.setTextStyle(0, newNote.length, blueStyle);
+
+            // Apply red style to the newest bullet only
             const redStart = newNote.lastIndexOf(newBullet);
             const redEnd = redStart + newBullet.length;
             builder.setTextStyle(redStart, redEnd, redStyle);
-// Set the rich text value in the cell
+
             descCell.setRichTextValue(builder.build());
+
           }
         }
       }
