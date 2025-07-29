@@ -327,5 +327,4 @@
   // Expose to global (if needed)
   window.openModal = openModal;
   window.closeModal = closeModal;
-  window.toggleMessageSheetBox = toggleMessageSheetBox;
 })();
