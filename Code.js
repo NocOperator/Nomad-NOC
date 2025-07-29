@@ -12,9 +12,17 @@ const DAILY_CHECKS_SPREADSHEET_ID = "19_-sakqFq26MDjKj04aMjSc36NBbF9SRsgMDnPCTB_
  */
 function getMessageMetricsSpreadsheetId() {
   const configSheet = getOrCreateConfigSheet();
-  const id = configSheet.getRange('B1').getValue();
-  if (!id) throw new Error('No Message Metrics spreadsheet ID set in Config sheet.');
-  return id;
+  let input = configSheet.getRange('B1').getValue().toString().trim();
+
+  if (!input) throw new Error('No Message Metrics spreadsheet ID or URL set in Config sheet.');
+
+  // Check if it's a full Google Sheets URL
+  const match = input.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if (match && match[1]) {
+    input = match[1]; // Extract the ID from the URL
+  }
+
+  return input;
 }
 
 function getOrCreateConfigSheet() {
@@ -313,12 +321,12 @@ function writeToNocChecklist(data) {
           // Append red note after if status is not "TRUE"
           if (newValue !== "TRUE") {
 
-            const descCell = sheet.getRange(targetRow, statusCol + 1); // Cell after status
+const descCell = sheet.getRange(targetRow, statusCol + 1); // Cell after status
             const oldRichText = descCell.getRichTextValue();
             const oldNote = oldRichText ? oldRichText.getText() : "";
             const datePrefix = Utilities.formatDate(new Date(), tz, "M/d/yy");
 
-            const newBullet = `- ${datePrefix} status changed from ${oldValue} to ${newValue}`;
+const newBullet = `- ${datePrefix} status changed from ${oldValue} to ${newValue}`;
 
             // Split existing lines and append new one
             const bullets = oldNote ? oldNote.split('\n') : [];
@@ -331,19 +339,17 @@ function writeToNocChecklist(data) {
             const redStyle = SpreadsheetApp.newTextStyle().setForegroundColor("red").build();
             const blueStyle = SpreadsheetApp.newTextStyle().setForegroundColor("blue").build();
 
-            // Build all text as blue
-            const builder = SpreadsheetApp.newRichTextValue().setText(newNote);
+// Build all text as blue
+            const builder = SpreadsheetApp.newRichTextValue()
+              .setText(newNote)
+              .setTextStyle(blueStyle);
 
-            // Apply blue style to all text
-            builder.setTextStyle(0, newNote.length, blueStyle);
-
-            // Apply red style to the newest bullet only
+// Apply red to the last bullet only
             const redStart = newNote.lastIndexOf(newBullet);
             const redEnd = redStart + newBullet.length;
             builder.setTextStyle(redStart, redEnd, redStyle);
-
+// Set the rich text value in the cell
             descCell.setRichTextValue(builder.build());
-
           }
         }
       }
