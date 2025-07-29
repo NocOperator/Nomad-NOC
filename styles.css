@@ -17,8 +17,7 @@ h1 {
   grid-template-columns: repeat(6, 1fr);
   gap: 20px;
   max-width: 2000px;
-  margin: 0 auto;
-  margin-bottom: 20px;
+  margin: 0 auto 20px auto;
   justify-content: center;
 }
 
@@ -27,8 +26,7 @@ h1 {
   min-height: 200px;
   border: 5px solid transparent;
   border-radius: 10px;
-  padding: 30px;
-  padding-bottom: 10px;
+  padding: 30px 30px 10px 30px;
   font-size: 20px;
   text-align: center;
   cursor: pointer;
@@ -97,7 +95,6 @@ a {
   background-color: gray;
   color: rgba(255, 255, 255, 0.806);
 }
-
 
 .form-popup {
   display: none;
@@ -197,92 +194,12 @@ a {
   display: flex;
   align-items: center;
   gap: 1px;
-  /* Further reduced gap */
   margin-bottom: 0.1rem;
-  /* Further reduced margin */
 }
 
 .label {
   margin: 0;
   font-size: 0.90rem !important;
-  /* Smaller font size for labels */
-}
-
-.switch-10 {
-  position: relative;
-  display: inline-block;
-  width: 30px;
-  height: 18px;
-  vertical-align: middle;
-  margin-top: 5px;
-  transform: translateY(2px);
-}
-
-.switch-10 input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider-10 {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #10c100;
-  transition: 0.4s;
-  border-radius: 18px;
-}
-
-.slider-10:before {
-  position: absolute;
-  content: "";
-  height: 14px;
-  width: 14px;
-  right: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: 0.4s;
-  border-radius: 50%;
-}
-
-input:checked+.slider-10 {
-  background-color: #ea0000;
-}
-
-input:checked+.slider-10:before {
-  transform: translateX(-12px);
-}
-
-.server-columns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.server-column {
-  flex: 1 1 30%;
-  min-width: 200px;
-}
-
-.server-column .field {
-  margin-bottom: 10px;
-}
-
-.fly-grid {
-  display: grid;
-  grid-template-columns: repeat(4, auto);
-  gap: 10px 30px;
-  padding: 20px;
-}
-
-.fly-item {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding-top: 5px;;
 }
 
 .on-hold-container {
@@ -343,10 +260,10 @@ input:checked+.slider-10:before {
   border-radius: 50%;
 }
 
-input:checked+.slider {
+input:checked + .slider {
   background-color: #575757;
 }
 
-input:checked+.slider:before {
+input:checked + .slider:before {
   transform: translateX(20px);
 }
