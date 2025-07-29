@@ -131,19 +131,28 @@ function copyPreviousDaySheet() {
   const spreadsheet = getOrCreateMonthlySpreadsheet();
 
   const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-
   const tz = "America/New_York";
   const todayName = Utilities.formatDate(today, tz, "M/d/yy");
-  const yesterdayName = Utilities.formatDate(yesterday, tz, "M/d/yy");
+
+  // Calculate previous working day:
+  // If Monday, previous day is Friday (3 days ago), else previous day is yesterday (1 day ago)
+  let daysToSubtract = 1;
+  const dayOfWeek = today.getDay(); // Sunday=0, Monday=1, ..., Saturday=6
+
+  if (dayOfWeek === 1) { // Monday
+    daysToSubtract = 3;  // Go back to Friday
+  }
+
+  const previousDate = new Date(today);
+  previousDate.setDate(today.getDate() - daysToSubtract);
+  const previousName = Utilities.formatDate(previousDate, tz, "M/d/yy");
 
   if (spreadsheet.getSheetByName(todayName)) {
     throw new Error(`Sheet (${todayName}) already exists`);
   }
 
-  const previousSheet = spreadsheet.getSheetByName(yesterdayName);
-  if (!previousSheet) throw new Error(`Sheet "${yesterdayName}" not found in "${spreadsheet.getName()}"`);
+  const previousSheet = spreadsheet.getSheetByName(previousName);
+  if (!previousSheet) throw new Error(`Sheet "${previousName}" not found in "${spreadsheet.getName()}"`);
 
   const newSheet = previousSheet.copyTo(spreadsheet).activate();
   newSheet.setName(todayName);
@@ -152,7 +161,7 @@ function copyPreviousDaySheet() {
   newSheet.getRange("C3").setValue(""); // Operator
   newSheet.getRange("C4").setValue(todayName); // Date
 
-  // Reset checkboxes to FALSE and set description font color blue except for "WAVE" checks
+  // Reset checkboxes and descriptions as before (your existing code)
   const range = newSheet.getDataRange();
   const values = range.getValues();
   const numRows = values.length;
@@ -167,19 +176,17 @@ function copyPreviousDaySheet() {
       const checkboxCell = newSheet.getRange(row + 1, checkboxCol);
       checkboxCell.setValue(false);
 
-      if (typeof titleText === 'string' && titleText.includes("WAVE")) {
-        // For Check 10: comment is in column E (5), same row
-        const descriptionCell = newSheet.getRange(row + 1, 5);
-        descriptionCell.setFontColor("#00a6ffff"); // Set blue
-      } else {
-        // For other checks: comment is in column C (3), same row
-        const descriptionCell = newSheet.getRange(row + 1, titleCol);
-        descriptionCell.setFontColor("#00a6ffff"); // Set blue
+      if (typeof titleText === 'string' && titleText.includes("WAVE")) continue;
+
+      const descriptionRow = row + 2;
+      if (descriptionRow <= numRows) {
+        const descriptionCell = newSheet.getRange(descriptionRow, titleCol);
+        descriptionCell.setFontColor("#00a6ffff"); // Set font color to blue
       }
     }
   }
-
 }
+
 
 function getTimeBlock() {
   const tz = "America/New_York";
