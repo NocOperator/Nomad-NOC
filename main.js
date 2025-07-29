@@ -286,21 +286,27 @@
     }
   }
 
-  function toggleMessageSheetBox() {
-    const box = document.getElementById("messageSheetBox");
-    const button = document.getElementById("messageSheetBtn");
+  document.getElementById('nocChecklistBtn').addEventListener('click', async () => {
+    try {
+      const now = new Date();
+      const month = now.toLocaleString('en-US', { month: 'short' });
+      const year = now.getFullYear().toString().slice(-2);
+      const monthKey = `${month}-${year}`;
 
-    const isVisible = box.style.display === "block";
-    box.style.display = isVisible ? "none" : "block";
+      const response = await fetch(`${SCRIPT_URL}?action=getChecklistUrl&month=${monthKey}`);
+      const data = await response.json();
 
-    // Optional: update button label or color
-    button.textContent = isVisible
-      ? "Message Metrics Spreadsheet"
-      : "Hide Spreadsheet Upload";
+      if (data.url) {
+        window.open(data.url, '_blank');
+      } else {
+        alert(`No NOC Checklist found for ${monthKey}`);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('There was an error trying to open the checklist.');
+    }
+  });
 
-    button.classList.toggle("is-warning", isVisible);
-    button.classList.toggle("is-danger", !isVisible);
-  }
 
   // -------- Initialization --------
   document.addEventListener("DOMContentLoaded", () => {

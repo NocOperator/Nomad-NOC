@@ -107,8 +107,38 @@ function doPost(e) {
   }
 }
 
+function doGet(e) {
+  const action = e.parameter.action;
 
-// --- Helper functions (include these somewhere in your script) ---
+  if (action === 'getChecklistUrl') {
+    const month = e.parameter.month;
+    const url = getChecklistUrlForMonth(month); // Returns null if not found
+    return ContentService
+      .createTextOutput(JSON.stringify({ url }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid request' })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getChecklistUrlForMonth(monthKey) {
+  const fileId = ScriptApp.getService().getScriptId();
+  const file = DriveApp.getFileById(fileId);
+  const parentFolders = file.getParents();
+
+  if (!parentFolders.hasNext()) return null;
+  const folder = parentFolders.next();
+
+  const files = folder.getFiles();
+  while (files.hasNext()) {
+    const f = files.next();
+    if (f.getName().includes(monthKey)) {
+      return f.getUrl();
+    }
+  }
+
+  return null;
+}
 
 function getOrCreateMonthlySpreadsheet() {
   const SCRIPT_TIMEZONE = "America/New_York";
