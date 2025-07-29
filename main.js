@@ -286,26 +286,10 @@
     }
   }
 
-  document.getElementById('nocChecklistBtn').addEventListener('click', async () => {
-    try {
-      const now = new Date();
-      const month = now.toLocaleString('en-US', { month: 'short' });
-      const year = now.getFullYear().toString().slice(-2);
-      const monthKey = `${month}-${year}`;
-
-      const response = await fetch(`${SCRIPT_URL}?action=getChecklistUrl&month=${monthKey}`);
-      const data = await response.json();
-
-      if (data.url) {
-        window.open(data.url, '_blank');
-      } else {
-        alert(`No NOC Checklist found for ${monthKey}`);
-      }
-    } catch (error) {
-      console.error(error);
-      alert('There was an error trying to open the checklist.');
-    }
+  document.getElementById('nocChecklistBtn').addEventListener('click', () => {
+    window.open("https://drive.google.com/drive/folders/1py4uqGk1br4y-7iS6wZVCANWGh94bxuz", "_blank");
   });
+
 
 
   // -------- Initialization --------
