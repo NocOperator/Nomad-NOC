@@ -2,9 +2,6 @@
   const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQq3q2fgE0ZJTQkch60qkJ4i0Ak76Q8rN16rYnUQnGkPEQWbRfRxz4gxwKKfmO65xiNLxGRrKktfRcf/pub?output=csv";
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzNW0ObQDIrZrIQWPc36YmDMsnTsdY0gYKNtgCwqRnN2TBpZfZkFommVk8jVCrJ3MGM/exec";
 
-  let statusData = [];
-
-
   // ------- Utilities --------
   function formatDate(date = new Date()) {
     return date.toLocaleDateString(undefined, {
@@ -57,9 +54,8 @@
     const tile = document.getElementById(tileId);
     if (!tile) return;
 
-    const row = csvRows.find(r => r["Check Number"] === tileId);
-    const isOnHold = row?.["On Hold"] === "TRUE";
-
+    const holdKey = `onHold_${tileId}`;
+    const isOnHold = localStorage.getItem(holdKey) === "true";
     const statusDiv = tile.querySelector(".tile-status");
 
     clearTileStatusClasses(tile);
@@ -69,40 +65,33 @@
       if (statusDiv) statusDiv.textContent = "Status: On Hold";
       return;
     }
+    // Use provided CSV rows to avoid fetching
+    const row = csvRows.find(r => r.split(",")[0] === tileId.padStart(2, "0"));
+    if (row) {
+      const [checkNum, statusRaw, notes, timestamp] = row.split(",");
+      const status = statusRaw?.trim().toLowerCase();
 
-    const status = row?.Completed?.trim().toLowerCase();
-    if (status) tile.classList.add(status);
-
-    let statusName = "N/A";
-    if (status === "true") statusName = "Complete";
-    else if (status === "false") statusName = "Incomplete";
-    else if (status === "warning") statusName = "Warning";
-    else if (status === "bad") statusName = "Error";
-
-    if (statusDiv) statusDiv.textContent = `Status: ${statusName}`;
+      if (status) tile.classList.add(status);
+      let statusName = "N/A";
+      if (status === "true") statusName = "Complete";
+      else if (status === "false") statusName = "Incomplete";
+      else if (status === "warning") statusName = "Warning";
+      else if (status === "bad") statusName = "Error";
+      if (statusDiv) statusDiv.textContent = `Status: ${statusName}`;
+    }
   }
-
 
   function updateTileStatuses() {
     fetch(CSV_URL)
       .then(res => res.text())
       .then(csv => {
-        const [headerLine, ...rows] = csv.trim().split('\n');
-        const headers = headerLine.split(",").map(h => h.trim());
-        statusData = rows.map(row => {
-          const values = row.split(",");
-          const obj = {};
-          headers.forEach((h, i) => obj[h] = values[i]?.trim());
-          return obj;
-        });
-
-        // Now update each tile
-        statusData.forEach(row => {
-          const tileId = row["Check Number"].padStart(2, "0");
-          updateSingleTileStatus(tileId, statusData);
+        const rows = csv.trim().split('\n').slice(1); // Skip header
+        rows.forEach(row => {
+          const [checkNum, statusRaw, notes, timestamp] = row.split(",");
+          const tileId = checkNum.padStart(2, "0");
+          updateSingleTileStatus(tileId, rows); // Pass rows to avoid refetching
         });
       })
-
       .catch(console.error);
   }
 
@@ -161,10 +150,8 @@
     // Setup On Hold toggle *after* form reset to preserve state
     const onHoldToggle = document.getElementById("onHoldToggle");
     const onHoldLabel = document.getElementById("onHoldLabel");
-
-    const row = statusData.find(r => r["Check Number"] === checkNum.padStart(2, "0"));
-    const isOnHold = row?.["On Hold"] === "TRUE";
-
+    const holdKey = `onHold_${checkNum}`;
+    const isOnHold = localStorage.getItem(holdKey) === "true";
 
     // Explicitly set checked state and attributes
     if (onHoldToggle) {
@@ -180,6 +167,7 @@
     if (onHoldToggle) {
       onHoldToggle.onchange = () => {
         const newHoldState = onHoldToggle.checked;
+        localStorage.setItem(holdKey, newHoldState);
         onHoldLabel.style.color = newHoldState ? "black" : "lightgray";
         updateSingleTileStatus(checkNum.padStart(2, "0"), []); // Pass empty rows for on-hold update
         console.log(`Toggle changed for Check ${checkNum}: onHold=${newHoldState}`);
@@ -266,8 +254,6 @@
       }
 
       formDataObj['Timestamp'] = new Date().toLocaleString();
-      formDataObj['On Hold'] = document.getElementById('onHoldToggle')?.checked ? 'TRUE' : 'FALSE';
-
 
       const response = await fetch(SCRIPT_URL, {
         method: 'POST',
