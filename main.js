@@ -254,6 +254,8 @@
       }
 
       formDataObj['Timestamp'] = new Date().toLocaleString();
+      formDataObj['On Hold'] = document.getElementById('onHoldToggle')?.checked ? 'TRUE' : 'FALSE';
+
 
       const response = await fetch(SCRIPT_URL, {
         method: 'POST',
