@@ -54,8 +54,37 @@
     const tile = document.getElementById(tileId);
     if (!tile) return;
 
-    const holdKey = `onHold_${tileId}`;
-    const isOnHold = localStorage.getItem(holdKey) === "true";
+    fetch(CSV_URL)
+      .then(res => res.text())
+      .then(csv => {
+        const rows = csv.trim().split('\n');
+        const headers = rows[0].split(',');
+        const onHoldIndex = headers.findIndex(h => h.trim() === 'On Hold');
+
+        const checkId = checkNum.padStart(2, '0');
+        const row = rows.find(r => r.startsWith(checkId + ","));
+        if (!row) return;
+
+        const cells = row.split(',');
+        const isOnHold = cells[onHoldIndex]?.trim() === 'TRUE';
+
+        const onHoldToggle = document.getElementById("onHoldToggle");
+        const onHoldLabel = document.getElementById("onHoldLabel");
+
+        if (onHoldToggle) {
+          onHoldToggle.checked = isOnHold;
+          onHoldToggle.setAttribute('checked', isOnHold ? 'checked' : '');
+          onHoldLabel.style.color = isOnHold ? "black" : "lightgray";
+        }
+
+        onHoldToggle.onchange = () => {
+          const newHoldState = onHoldToggle.checked;
+          onHoldLabel.style.color = newHoldState ? "black" : "lightgray";
+        };
+      })
+      .catch(err => console.error("Error loading on hold state:", err));
+
+
     const statusDiv = tile.querySelector(".tile-status");
 
     clearTileStatusClasses(tile);

@@ -70,6 +70,8 @@ function doPost(e) {
     sheet1.getRange(rowToUpdate, 2).setValue(data.Completed === "TRUE" || data.Completed === true);
     sheet1.getRange(rowToUpdate, 3).setValue(data.Notes || "");
     sheet1.getRange(rowToUpdate, 4).setValue(new Date());
+    sheet1.getRange(rowToUpdate, 5).setValue(data["On Hold"] === "TRUE"); // Column E = On Hold
+
 
     // ------------- Write to Spreadsheet #2 (Message Metrics) --------------
     if (data.checkNumberStr === "07") {
