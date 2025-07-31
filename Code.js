@@ -4,6 +4,7 @@ const FOLDER_ID = "NOC";
 // secondary file upload
 const NUMERIC_LOG_SHEET_NAME = 'DataEntry'; // Sheet name in the message metrics spreadsheet
 const DAILY_CHECKS_SPREADSHEET_ID = "19_-sakqFq26MDjKj04aMjSc36NBbF9SRsgMDnPCTB_c"; // ID of the target spreadsheet for daily checks
+const LOGS_SPREADSHEET_ID = "1TvefL5USyqDB1O_TPVA4Qk6r_1wGL-A6VymIHCGlUrI"; // ID of the spreadsheet that logs all data from all checks
 // == CONFIGURATION END ==
 
 /**
@@ -98,6 +99,16 @@ function doPost(e) {
 
     // -------- Write to Spreadsheet #3 ("NOC Checklist") ---------
     writeToNocChecklist(data);
+
+    if (data.Notes && data.Notes.trim()) {
+      logMessageToPerCheckLog(
+        data.checkNumber,
+        data.Date || Utilities.formatDate(new Date(), "America/New_York", "M/d/yy"),
+        data.Notes,
+        data.Operator
+      );
+    }
+
 
     return ContentService.createTextOutput(
       JSON.stringify({ status: "success", message: "Success!" })
@@ -362,10 +373,18 @@ function writeToNocChecklist(data) {
         }
       }
     }
-    return; // Skip the normal note-logging for this special case
   }
-  else if (data.Notes && data.Notes.trim()) {
-    const descriptionCell = sheet.getRange(row + 1, 3); // original fallback
+    // Log Notes/Comments for all checks (including WAVE)
+  if (data.Notes && data.Notes.trim()) {
+    let descriptionCell;
+
+    if (checkNum === 10) {
+      // For WAVE, use the standard description cell (row + 1, col 3)
+      descriptionCell = sheet.getRange(row + 1, 3);
+    } else {
+      descriptionCell = sheet.getRange(row + 1, 3);
+    }
+
     const existingText = descriptionCell.getValue();
     const datePrefix = Utilities.formatDate(new Date(), tz, "M/d/yy");
     const newBullet = `- ${datePrefix}: ${data.Notes.trim()}`;
@@ -373,7 +392,7 @@ function writeToNocChecklist(data) {
 
     descriptionCell.setValue(updatedText);
 
-    // Style the newly added text in red
+    // Style only the new comment as red
     const start = updatedText.length - newBullet.length;
     const end = updatedText.length;
     const redStyle = SpreadsheetApp.newTextStyle().setForegroundColor("red").build();
@@ -384,12 +403,33 @@ function writeToNocChecklist(data) {
       .build();
 
     descriptionCell.setRichTextValue(styledText);
-    // Special handling for Check #07 (Message Check)
+
+    // Special case: clear message check description box after styling
     if (checkNum === 7) {
       descriptionCell.setValue(null);
     }
   }
+
 }
+
+function logMessageToPerCheckLog(checkNumber, date, message, operatorName) {
+  if (!message || !message.trim()) return;
+
+  const ss = SpreadsheetApp.openById(LOGS_SPREADSHEET_ID);
+  const allSheets = ss.getSheets();
+
+  const sheet = allSheets.find(s =>
+    s.getName().startsWith(checkNumber.toString().padStart(2, '0'))
+  );
+
+  if (!sheet) {
+    console.warn(`No matching sheet found for check ${checkNumber} in message log spreadsheet`);
+    return;
+  }
+
+  sheet.appendRow([date, message.trim(), operatorName || "Unknown"]);
+}
+
 
 /**
  * Saves a file to Google Drive
