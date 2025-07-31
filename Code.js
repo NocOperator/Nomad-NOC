@@ -405,7 +405,7 @@ function writeToNocChecklist(data) {
 function logMessageToPerCheckLog(checkNumber, date, message, operatorName) {
   if (!message || !message.trim()) return;
 
-  const ss = SpreadsheetApp.openById(PER_CHECK_MESSAGE_LOG_ID);
+  const ss = SpreadsheetApp.openById(LOGS_SPREADSHEET_ID);
   const allSheets = ss.getSheets();
 
   const sheet = allSheets.find(s =>
