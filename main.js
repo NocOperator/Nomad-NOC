@@ -50,46 +50,36 @@
   function clearTileStatusClasses(tile) {
     tile.classList.remove('true', 'false', 'bad', 'warning', 'on-hold');
   }
-
   function updateSingleTileStatus(tileId, csvRows) {
-    const tile = document.querySelector(`.tile[data-id="${tileId}"]`);
+    const tile = document.getElementById(tileId);
     if (!tile) return;
 
+    const holdKey = `onHold_${tileId}`;
+    const isOnHold = localStorage.getItem(holdKey) === "true";
+    const statusDiv = tile.querySelector(".tile-status");
+
+    clearTileStatusClasses(tile);
+
+    if (isOnHold) {
+      tile.classList.add("on-hold");
+      if (statusDiv) statusDiv.textContent = "Status: On Hold";
+      return;
+    }
+    // Use provided CSV rows to avoid fetching
     const row = csvRows.find(r => r.split(",")[0] === tileId.padStart(2, "0"));
     if (row) {
-      const [checkNum, statusRaw, notes, timestamp, onHoldRaw] = row.split(",");
+      const [checkNum, statusRaw, notes, timestamp] = row.split(",");
       const status = statusRaw?.trim().toLowerCase();
-      const isOnHold = onHoldRaw?.trim().toLowerCase() === "true";
 
-      tile.classList.remove("gray", "green", "red", "yellow", "blue");
-
-      if (isOnHold) {
-        tile.classList.add("gray");
-      } else {
-        switch (status) {
-          case "completed":
-            tile.classList.add("green");
-            break;
-          case "error":
-            tile.classList.add("red");
-            break;
-          case "in progress":
-            tile.classList.add("yellow");
-            break;
-          case "info":
-            tile.classList.add("blue");
-            break;
-          default:
-            // No class added
-            break;
-        }
-      }
-    } else {
-      // If no row is found, clear any existing status classes
-      tile.classList.remove("gray", "green", "red", "yellow", "blue");
+      if (status) tile.classList.add(status);
+      let statusName = "N/A";
+      if (status === "true") statusName = "Complete";
+      else if (status === "false") statusName = "Incomplete";
+      else if (status === "warning") statusName = "Warning";
+      else if (status === "bad") statusName = "Error";
+      if (statusDiv) statusDiv.textContent = `Status: ${statusName}`;
     }
   }
-
 
   function updateTileStatuses() {
     fetch(CSV_URL)
