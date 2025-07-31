@@ -254,6 +254,21 @@
       }
 
       formDataObj['Timestamp'] = new Date().toLocaleString();
+      // Conditionally log to message log spreadsheet if a message was entered
+      if (formDataObj['Notes'] && formDataObj['Notes'].trim() !== "") {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'logMessage',
+            checkNumber: formDataObj['checkNumber'],
+            operator: formDataObj['Operator'],
+            message: formDataObj['Notes'],
+            date: formDataObj['Operator Date']
+          })
+        });
+      }
+
 
       const response = await fetch(SCRIPT_URL, {
         method: 'POST',
@@ -302,36 +317,36 @@
     button.classList.toggle("is-danger", !isVisible);
   }
 
-// -------- Initialization --------
-document.addEventListener("DOMContentLoaded", () => {
-  fetch('modal.html')
-    .then(res => res.text())
-    .then(html => {
-      document.getElementById('modalContainer').innerHTML = html;
-      document.getElementById('modalForm').addEventListener('submit', handleFormSubmit);
+  // -------- Initialization --------
+  document.addEventListener("DOMContentLoaded", () => {
+    fetch('modal.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('modalContainer').innerHTML = html;
+        document.getElementById('modalForm').addEventListener('submit', handleFormSubmit);
+      });
+
+    loadUserName();
+    displayCurrentDate();
+
+    // Wait until tiles exist before updating their status
+    const waitForTiles = setInterval(() => {
+      const allTiles = document.querySelectorAll(".tile");
+      if (allTiles.length > 0) {
+        clearInterval(waitForTiles);
+        updateTileStatuses();
+      }
+    }, 100); // check every 100ms
+
+    // These must be inside DOMContentLoaded too!
+    document.getElementById("userNameDisplay").addEventListener("click", promptUserNameChange);
+    document.getElementById('nocChecklistBtn').addEventListener('click', () => {
+      window.open("https://drive.google.com/drive/folders/1py4uqGk1br4y-7iS6wZVCANWGh94bxuz", "_blank");
     });
-
-  loadUserName();
-  displayCurrentDate();
-
-  // Wait until tiles exist before updating their status
-  const waitForTiles = setInterval(() => {
-    const allTiles = document.querySelectorAll(".tile");
-    if (allTiles.length > 0) {
-      clearInterval(waitForTiles);
-      updateTileStatuses();
-    }
-  }, 100); // check every 100ms
-
-  // These must be inside DOMContentLoaded too!
-  document.getElementById("userNameDisplay").addEventListener("click", promptUserNameChange);
-  document.getElementById('nocChecklistBtn').addEventListener('click', () => {
-    window.open("https://drive.google.com/drive/folders/1py4uqGk1br4y-7iS6wZVCANWGh94bxuz", "_blank");
   });
-});
 
-// Expose to global (if needed)
-window.openModal = openModal;
-window.closeModal = closeModal;
-window.toggleMessageSheetBox = toggleMessageSheetBox;
+  // Expose to global (if needed)
+  window.openModal = openModal;
+  window.closeModal = closeModal;
+  window.toggleMessageSheetBox = toggleMessageSheetBox;
 })();
