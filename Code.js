@@ -4,7 +4,6 @@ const FOLDER_ID = "NOC";
 // secondary file upload
 const NUMERIC_LOG_SHEET_NAME = 'DataEntry'; // Sheet name in the message metrics spreadsheet
 const DAILY_CHECKS_SPREADSHEET_ID = "19_-sakqFq26MDjKj04aMjSc36NBbF9SRsgMDnPCTB_c"; // ID of the target spreadsheet for daily checks
-const LOGS_SPREADSHEET_ID = "1TvefL5USyqDB1O_TPVA4Qk6r_1wGL-A6VymIHCGlUrI"; // ID of the spreadsheet that logs all data from all checks
 // == CONFIGURATION END ==
 
 /**
@@ -99,16 +98,6 @@ function doPost(e) {
 
     // -------- Write to Spreadsheet #3 ("NOC Checklist") ---------
     writeToNocChecklist(data);
-
-    if (data.Notes && data.Notes.trim()) {
-      logMessageToPerCheckLog(
-        data.checkNumber,
-        data.Date || Utilities.formatDate(new Date(), "America/New_York", "M/d/yy"),
-        data.Notes,
-        data.Operator
-      );
-    }
-
 
     return ContentService.createTextOutput(
       JSON.stringify({ status: "success", message: "Success!" })
@@ -401,25 +390,6 @@ function writeToNocChecklist(data) {
     }
   }
 }
-
-function logMessageToPerCheckLog(checkNumber, date, message, operatorName) {
-  if (!message || !message.trim()) return;
-
-  const ss = SpreadsheetApp.openById(LOGS_SPREADSHEET_ID);
-  const allSheets = ss.getSheets();
-
-  const sheet = allSheets.find(s =>
-    s.getName().startsWith(checkNumber.toString().padStart(2, '0'))
-  );
-
-  if (!sheet) {
-    console.warn(`No matching sheet found for check ${checkNumber} in message log spreadsheet`);
-    return;
-  }
-
-  sheet.appendRow([date, message.trim(), operatorName || "Unknown"]);
-}
-
 
 /**
  * Saves a file to Google Drive
