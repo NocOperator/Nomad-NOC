@@ -290,15 +290,15 @@ input:checked+.slider-10:before {
   bottom: 20px;
   left: 20px;
   display: flex;
-  flex-direction: row;
-  align-items: center; 
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 
 .on-hold-label {
   color: lightgray;
-  margin-bottom: 4px;
+  margin-bottom: 0px;
   font-weight: bold;
   transition: color 0.2s;
 }
