@@ -183,6 +183,9 @@ const formTemplates = {
       <span>SA14WAVE511MS</span>
       <label class="switch-10"><input type="checkbox" name="SA14WAVE511MS"><span class="slider-10"></span></label>
     </div>
+    <label>Comments:
+      <textarea name="Notes" rows="3" style="width:100%;"></textarea>
+    </label>
 </div>
 `,
   // Eaton Dashboard Check
